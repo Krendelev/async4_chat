@@ -1,22 +1,13 @@
 import asyncio
-from datetime import datetime
 
-import aiofiles
-
-from utils import get_args
-
-
-async def save_text(text, file):
-    async with aiofiles.open(file, "a") as fh:
-        now = datetime.now().strftime("%d.%m.%y %H:%M")
-        await fh.writelines(f"[{now}]  {text}")
+from utils import get_args, save_text
 
 
 async def chat_reader(host, port, file="chat.history"):
     reader, _ = await asyncio.open_connection(host, port)
     while True:
         data = await reader.readuntil()
-        if not data:
+        if reader.at_eof():
             break
         text = data.decode()
         print(text, end="")
