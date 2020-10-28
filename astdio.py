@@ -16,7 +16,7 @@ async def astdio():
     writer_transport, writer_protocol = await loop.connect_write_pipe(
         asyncio.Protocol, os.fdopen(temp_out, "wb")
     )
-    writer = asyncio.streams.StreamWriter(writer_transport, writer_protocol, None, loop)
+    writer = asyncio.StreamWriter(writer_transport, writer_protocol, None, loop)
 
     return reader, writer
 
