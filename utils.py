@@ -1,6 +1,7 @@
 import asyncio
 import configargparse
 import json
+import logging
 import os
 from datetime import datetime
 
@@ -25,9 +26,9 @@ async def save_text(text, file):
 
 async def register(host, port):
     reader, writer = await asyncio.open_connection(host, port)
-    await reader.readuntil()
+    logging.debug(await reader.readuntil())
     writer.write(b"\n")
-    await reader.readuntil()
+    logging.debug(await reader.readuntil())
     username = input("Hello user! Please enter your preferred nickname:\n")
     writer.write(f"{username}\n".encode())
     response = await reader.readuntil()
@@ -50,14 +51,14 @@ async def authorize(host, port):
         token, username = await register(host, port)
 
     input_ = input(
-        f"Join chat as {username} or register new user?\nPress 'R' to register, 'Enter' to join: "
+        f"Join chat as {username} or register new user?\nPress 'R' to register, 'Return' to join: "
     )
     if input_.lower() == "r":
         token, _ = await register(host, port)
 
     reader, writer = await asyncio.open_connection(host, port)
-    await reader.readuntil()
+    logging.debug(await reader.readuntil())
     writer.write(f"{token}\n".encode())
-    await reader.readuntil()
+    logging.debug(await reader.readuntil())
 
     return reader, writer

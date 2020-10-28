@@ -10,9 +10,11 @@ async def astdio():
     reader_protocol = asyncio.StreamReaderProtocol(reader, loop=loop)
     await loop.connect_read_pipe(lambda: reader_protocol, sys.stdin)
 
-    new_out = os.dup(sys.stdout.fileno())
+    # we don't want to close stdout when we're done
+    temp_out = os.dup(sys.stdout.fileno())
+
     writer_transport, writer_protocol = await loop.connect_write_pipe(
-        asyncio.Protocol, os.fdopen(new_out, "wb")
+        asyncio.Protocol, os.fdopen(temp_out, "wb")
     )
     writer = asyncio.streams.StreamWriter(writer_transport, writer_protocol, None, loop)
 
