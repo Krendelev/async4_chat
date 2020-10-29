@@ -43,7 +43,7 @@ async def register(host, port):
     return creds["account_hash"], creds["nickname"]
 
 
-async def authorize(host, port):
+async def authorize(host, port, reader, writer):
     try:
         token = os.environ["TOKEN"]
         username = os.environ["USERNAME"]
@@ -56,9 +56,6 @@ async def authorize(host, port):
     if input_.lower() == "r":
         token, _ = await register(host, port)
 
-    reader, writer = await asyncio.open_connection(host, port)
     logging.debug(await reader.readuntil())
     writer.write(f"{token}\n".encode())
     logging.debug(await reader.readuntil())
-
-    return reader, writer

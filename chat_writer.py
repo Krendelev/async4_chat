@@ -8,7 +8,8 @@ from utils import authorize, get_args
 
 
 async def chat_writer(host, port):
-    reader, writer = await authorize(host, port)
+    reader, writer = await asyncio.open_connection(host, port)
+    await authorize(host, port, reader, writer)
 
     while True:
         data = await reader.readuntil()
