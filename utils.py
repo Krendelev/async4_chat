@@ -3,6 +3,7 @@ import configargparse
 import json
 import logging
 import os
+from contextlib import closing
 from datetime import datetime
 
 import aiofiles
@@ -26,20 +27,18 @@ async def save_text(text, file):
 
 async def register(host, port):
     reader, writer = await asyncio.open_connection(host, port)
-    logging.debug(await reader.readuntil())
-    writer.write(b"\n")
-    logging.debug(await reader.readuntil())
-    username = input("Hello user! Please enter your preferred nickname:\n")
-    writer.write(f"{username}\n".encode())
-    response = await reader.readuntil()
-    writer.close()
-    await writer.wait_closed()
+    with closing(writer):
+        logging.debug(await reader.readuntil())
+        writer.write(b"\n")
+        logging.debug(await reader.readuntil())
+        username = input("Hello user! Please enter your preferred nickname:\n")
+        writer.write(f"{username}\n".encode())
+        response = await reader.readuntil()
 
     creds = json.loads(response)
     with open(".env", "w") as fh:
         fh.write(f"TOKEN={creds['account_hash']}\nUSERNAME={creds['nickname']}")
 
-    print(f"Welcome {creds['nickname']}! Registration complete.")
     return creds["account_hash"], creds["nickname"]
 
 
@@ -49,6 +48,7 @@ async def authorize(host, port, reader, writer):
         username = os.environ["USERNAME"]
     except KeyError:
         token, username = await register(host, port)
+        print(f"Welcome {username}! Registration complete.")
 
     input_ = input(
         f"Join chat as {username} or register new user?\nPress 'R' to register, 'Return' to join: "
