@@ -4,7 +4,6 @@ import json
 import logging
 import os
 from contextlib import closing
-from datetime import datetime
 
 import aiofiles
 
@@ -19,10 +18,9 @@ def get_args():
     return parser.parse_args()
 
 
-async def save_text(text, file):
-    async with aiofiles.open(file, "a") as fh:
-        now = datetime.now().strftime("%d.%m.%y %H:%M")
-        await fh.writelines(f"[{now}]  {text}")
+async def save_text(file, mode, text):
+    async with aiofiles.open(file, mode) as fh:
+        await fh.writelines(text)
 
 
 async def register(host, port):
@@ -36,26 +34,13 @@ async def register(host, port):
         response = await reader.readuntil()
 
     creds = json.loads(response)
-    with open(".env", "w") as fh:
-        fh.write(f"TOKEN={creds['account_hash']}\nUSERNAME={creds['nickname']}")
+    record = f"TOKEN={creds['account_hash']}\nUSERNAME={creds['nickname']}"
+    await save_text(".env", "w", record)
 
     return creds["account_hash"], creds["nickname"]
 
 
-async def authorize(host, port, reader, writer):
-    try:
-        token = os.environ["TOKEN"]
-        username = os.environ["USERNAME"]
-    except KeyError:
-        token, username = await register(host, port)
-        print(f"Welcome {username}! Registration complete.")
-
-    input_ = input(
-        f"Join chat as {username} or register new user?\nPress 'R' to register, 'Return' to join: "
-    )
-    if input_.lower() == "r":
-        token, _ = await register(host, port)
-
+async def authorize(reader, writer, token):
     logging.debug(await reader.readuntil())
     writer.write(f"{token}\n".encode())
     logging.debug(await reader.readuntil())

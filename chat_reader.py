@@ -1,5 +1,6 @@
 import asyncio
 from contextlib import closing
+from datetime import datetime
 
 from utils import get_args, save_text
 
@@ -13,7 +14,9 @@ async def chat_reader(host, port, file="chat.history"):
                 break
             text = data.decode()
             print(text, end="")
-            await save_text(text, file)
+            now = datetime.now().strftime("%d.%m.%y %H:%M")
+            record = f"[{now}]  {text}"
+            await save_text(file, "a", record)
 
 
 if __name__ == "__main__":
