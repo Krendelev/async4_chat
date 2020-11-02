@@ -11,12 +11,12 @@ $ python3 -m pip install -r requirements.txt
 ```
 Для чтения и сохранения истории:
 ```bash
-$ python3 chat_reader.py [--host] [--inport] [--history]
+$ python3 chat_reader.py [--host] [--port] [--history]
 ```
 
 Для авторизации и публикации сообщений:
 ```bash
-$ python3 chat_writer.py [--host] [--outport]
+$ python3 chat_writer.py [--host] [--port]
 ```
 
 
