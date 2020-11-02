@@ -2,20 +2,18 @@ import asyncio
 import configargparse
 import json
 import logging
-import os
 from contextlib import closing
 
 import aiofiles
 
+TIMEOUT = 30
 
-def get_args():
+
+def get_argparser():
     parser = configargparse.ArgParser(default_config_files=["chat.ini"])
-    parser.add("--host", help="URL of chat hosting server")
-    parser.add("--inport", type=int, help="port to read from")
-    parser.add("--outport", type=int, help="port to write to")
-    parser.add("--history", help="where to save transcript")
+    parser.add_argument("--host", help="URL of chat hosting server")
 
-    return parser.parse_args()
+    return parser
 
 
 async def save_text(file, mode, text):
@@ -23,8 +21,27 @@ async def save_text(file, mode, text):
         await fh.writelines(text)
 
 
+def wait_for(seconds):
+    def wrap(func):
+        async def wrapped(*args):
+            return await asyncio.wait_for(func(*args), seconds)
+
+        return wrapped
+
+    return wrap
+
+
+@wait_for(TIMEOUT)
+async def connect_to_server(host, port):
+    while True:
+        try:
+            return await asyncio.open_connection(host, port)
+        except OSError:
+            await asyncio.sleep(1)
+
+
 async def register(host, port):
-    reader, writer = await asyncio.open_connection(host, port)
+    reader, writer = await connect_to_server(host, port)
     with closing(writer):
         logging.debug(await reader.readuntil())
         writer.write(b"\n")
